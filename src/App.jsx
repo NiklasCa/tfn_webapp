@@ -8,14 +8,15 @@ function App() {
   const [mode, setMode] = useState('swedish'); // 'swedish' | 'nato'
   // Removed engine state, defaulting to Google
   // Default categories: Swedish places and Names
-  const [selectedCategories, setSelectedCategories] = useState(new Set(['places_se', 'names']));
+  const [selectedCategories, setSelectedCategories] = useState(new Set(['places_se', 'cities_world', 'names', 'codes']));
   const [showSettings, setShowSettings] = useState(false);
 
   // Code length settings
-  const [codeMin, setCodeMin] = useState(2);
-  const [codeMax, setCodeMax] = useState(6);
+  const [codeMin, setCodeMin] = useState(5);
+  const [codeMax, setCodeMax] = useState(8);
   const [codeUseLetters, setCodeUseLetters] = useState(true);
   const [codeUseNumbers, setCodeUseNumbers] = useState(true);
+  const [codeUseHyphen, setCodeUseHyphen] = useState(true);
 
   const [currentWord, setCurrentWord] = useState('');
   const [charIndex, setCharIndex] = useState(0);
@@ -39,7 +40,7 @@ function App() {
   }, [codeMin]);
 
   const pickNewWord = () => {
-    const pool = getWordPool(selectedCategories, codeMin, codeMax, codeUseLetters, codeUseNumbers);
+    const pool = getWordPool(selectedCategories, codeMin, codeMax, codeUseLetters, codeUseNumbers, codeUseHyphen);
     const word = pool[Math.floor(Math.random() * pool.length)];
     setCurrentWord(word.toUpperCase());
     setCharIndex(0);
@@ -394,7 +395,7 @@ function App() {
       <header>
         <h1>Bokstaverings-Tränaren</h1>
         <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-          Träna på det svenska och NATO-alfabetet med rösten
+          Träna på bokstaveringsalfabetet med röstigenkänning
         </p>
       </header>
 
@@ -479,7 +480,7 @@ function App() {
                       />
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
                     <label style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}>
                       <input type="checkbox" checked={codeUseLetters} onChange={(e) => setCodeUseLetters(e.target.checked)} />
                       Bokstäver
@@ -487,6 +488,10 @@ function App() {
                     <label style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}>
                       <input type="checkbox" checked={codeUseNumbers} onChange={(e) => setCodeUseNumbers(e.target.checked)} />
                       Siffror
+                    </label>
+                    <label style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={codeUseHyphen} onChange={(e) => setCodeUseHyphen(e.target.checked)} />
+                      Bindestreck (-)
                     </label>
                   </div>
                 </div>

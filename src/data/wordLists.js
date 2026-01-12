@@ -131,7 +131,7 @@ export const NAMES = [
 
 const ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-export const generateRandomCode = (minLength = 3, maxLength = 8, useLetters = true, useNumbers = true) => {
+export const generateRandomCode = (minLength = 3, maxLength = 8, useLetters = true, useNumbers = true, useHyphen = true) => {
     // Determine charset based on flags
     let chars = "";
     if (useLetters) chars += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -140,8 +140,8 @@ export const generateRandomCode = (minLength = 3, maxLength = 8, useLetters = tr
     // Safety fallback: if nothing selected, use X
     if (chars.length === 0) chars = "X";
 
-    // Add hyphen if we have enough variety (optional)
-    if (chars.length > 10) chars += "-";
+    // Add hyphen if requested
+    if (useHyphen) chars += "-";
 
     const length = Math.floor(Math.random() * (maxLength - minLength + 1)) + minLength;
     let res = "";
@@ -151,10 +151,11 @@ export const generateRandomCode = (minLength = 3, maxLength = 8, useLetters = tr
     }
 
     // Clean up hyphens
-    res = res.replace(/--+/g, '-');
-    if (res.startsWith('-')) res = (useLetters ? 'A' : (useNumbers ? '1' : 'X')) + res.substring(1);
-    // Fix end if needed (optional)
-    if (res.endsWith('-')) res = res.substring(0, res.length - 1) + (useNumbers ? '9' : (useLetters ? 'Z' : 'X'));
+    if (useHyphen) {
+        res = res.replace(/--+/g, '-');
+        if (res.startsWith('-')) res = (useLetters ? 'A' : (useNumbers ? '1' : 'X')) + res.substring(1);
+        if (res.endsWith('-')) res = res.substring(0, res.length - 1) + (useNumbers ? '9' : (useLetters ? 'Z' : 'X'));
+    }
 
     return res.toUpperCase();
 };
@@ -191,7 +192,7 @@ export const generateMGRS = () => {
     return `${zoneNum}${band} ${sq1}${sq2} ${easting} ${northing}`;
 };
 
-export const getWordPool = (selectedCategories, codeMin = 3, codeMax = 8, useLetters = true, useNumbers = true) => {
+export const getWordPool = (selectedCategories, codeMin = 3, codeMax = 8, useLetters = true, useNumbers = true, useHyphen = true) => {
     let pool = [];
 
     const categories = new Set(selectedCategories);
@@ -209,7 +210,7 @@ export const getWordPool = (selectedCategories, codeMin = 3, codeMax = 8, useLet
         // Generate a batch of transient codes to pick from
         // Add enough to allow for some gameplay without regenerating pool instantly
         for (let i = 0; i < 50; i++) {
-            pool.push(generateRandomCode(codeMin, codeMax, useLetters, useNumbers));
+            pool.push(generateRandomCode(codeMin, codeMax, useLetters, useNumbers, useHyphen));
         }
     }
     if (categories.has('mgrs')) {

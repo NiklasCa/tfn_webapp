@@ -72,6 +72,11 @@ export const normalizeResult = (transcript, alternatives = [], alphabetMode, tar
         return numberMap[normalized];
     }
 
+
+    // Explicit hyphen handling
+    if (mode === 'swedish' && ['streck', 'minus'].includes(normalized)) return 'bindestreck';
+    if (mode === 'nato' && ['dash', 'minus'].includes(normalized)) return 'hyphen';
+
     // 2. Handle common phonetic mis-transcriptions and aliases
     const aliases = {
         'gustaf': 'gustav',
