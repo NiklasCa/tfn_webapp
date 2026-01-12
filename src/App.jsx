@@ -434,7 +434,7 @@ function App() {
   return (
     <div className="app-container">
       <header>
-        <h1>Bokstaverings-Tränaren</h1>
+        <h1>Bokstaveringstränaren</h1>
         <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
           Träna på bokstaveringsalfabetet med röstigenkänning
         </p>
