@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, RefreshCw, Trophy, AlertCircle, Settings2, Cpu, Cloud, ChevronDown, ChevronUp } from 'lucide-react';
+import { Mic, MicOff, Trophy, AlertCircle, Settings2, Cpu, Cloud, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
 import { ALPHABETS } from './data/alphabets';
 import { getWordPool } from './data/wordLists';
 import { GoogleSpeechHandler, normalizeResult, preProcessTranscript } from './utils/speechUtils';
@@ -26,7 +26,6 @@ function App() {
   const [status, setStatus] = useState('Välj läge och tryck på Starta');
   const [results, setResults] = useState([]); // All results for the current word
   const [lastResults, setLastResults] = useState([]); // Results for the very last speech event
-  const [stats, setStats] = useState({ correct: 0, total: 0 });
   const charIndexRef = useRef(0);
   const speechRef = useRef(null);
 
@@ -38,6 +37,25 @@ function App() {
   useEffect(() => {
     if (codeMax < codeMin) setCodeMax(codeMin);
   }, [codeMin]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const tag = e.target.tagName.toUpperCase();
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        toggleListening();
+      } else if (e.code === 'ArrowRight') {
+        pickNewWord();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+    // Explicitly disabling exhaustive-deps for pickNewWord/toggleListening loop if needed, 
+    // but including them should be fine as long as they don't trigger frequent re-renders in a loop.
+  }, [isListening, selectedCategories, codeMin, codeMax, codeUseLetters, codeUseNumbers, codeUseHyphen]);
 
   const pickNewWord = () => {
     const pool = getWordPool(selectedCategories, codeMin, codeMax, codeUseLetters, codeUseNumbers, codeUseHyphen);
@@ -345,10 +363,6 @@ function App() {
 
     setLastResults(spokenResults);
 
-    setStats(prev => ({
-      correct: prev.correct + correctCount,
-      total: prev.total + spokenResults.length
-    }));
 
     const newIndex = startIndex + bestI;
     setCharIndex(newIndex);
@@ -379,6 +393,7 @@ function App() {
     if (isListening) {
       if (speechRef.current) speechRef.current.stop();
       setIsListening(false);
+      setStatus('Pausad.');
     } else {
       startListening();
     }
@@ -388,6 +403,10 @@ function App() {
     const alphabet = ALPHABETS[mode];
     return alphabet.letters[char] || alphabet.numbers[char] || alphabet.symbols[char] || char;
   };
+
+  const statsCorrect = results.filter(r => r && r.correct).length;
+  const statsTotal = currentWord.replace(/ /g, '').length;
+  const statsPercent = statsTotal > 0 ? Math.round((statsCorrect / statsTotal) * 100) : 0;
 
   return (
     <div className="app-container">
@@ -532,6 +551,10 @@ function App() {
                 className += " active";
               }
 
+              if (char === ' ') {
+                return <span key={index} style={{ display: 'inline-block', width: '0.8em' }}></span>;
+              }
+
               return (
                 <span key={index} className={className}>
                   {char === '0' ? 'Ø' : char}
@@ -542,13 +565,25 @@ function App() {
         </div>
 
         <div className="mic-container">
-          <button
-            className={`mic-button ${isListening ? 'listening' : ''}`}
-            onClick={toggleListening}
-            title={isListening ? "Stoppa" : "Starta mikrofonen"}
-          >
-            {isListening ? <Mic size={32} /> : <MicOff size={32} />}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+              <button
+                className={`mic-button ${isListening ? 'listening' : ''}`}
+                onClick={toggleListening}
+                title={isListening ? "Stoppa (Mellanslag)" : "Starta mikrofonen (Mellanslag)"}
+              >
+                {isListening ? <Mic size={32} /> : <MicOff size={32} />}
+              </button>
+              <span className="desktop-hint">Space</span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+              <button className="next-word-button" onClick={pickNewWord} title="Nästa ord (Pil Höger)">
+                <ArrowRight size={32} />
+              </button>
+              <span className="desktop-hint">➡</span>
+            </div>
+          </div>
           <div className="status-text">{status}</div>
         </div>
 
@@ -579,17 +614,18 @@ function App() {
 
         <div className="stats">
           <div className="stat-item">
-            <span className="stat-value">{stats.correct}</span>
+            <span className="stat-value">{statsCorrect}</span>
             <span className="stat-label">Rätt</span>
           </div>
           <div className="stat-item">
-            <span className="stat-value">{stats.total}</span>
-            <span className="stat-label">Totalt</span>
+            <span className="stat-value">
+              {statsPercent}%
+            </span>
+            <span className="stat-label">Klart</span>
           </div>
           <div className="stat-item">
-            <button className="btn btn-outline" onClick={pickNewWord} style={{ marginTop: '0.5rem' }}>
-              <RefreshCw size={18} /> Nytt ord
-            </button>
+            <span className="stat-value">{statsTotal}</span>
+            <span className="stat-label">Längd</span>
           </div>
         </div>
       </main>
