@@ -23,7 +23,12 @@ export const SWEDISH_PLACES = [
     "Töreboda", "Gullspång", "Hova", "Laxå", "Askersund", "Hallsberg", "Kumla", "Lekeberg", "Degerfors", "Karlskoga", "Kil",
     "Forshaga", "Munkfors", "Hagfors", "Torsby", "Sunne", "Årjäng", "Eda", "Charlottenberg", "Bengtsfors", "Mellerud", "Vänersborg",
     "Lysekil", "Sotenäs", "Tanum", "Strömstad", "Munkedal", "Färgelanda", "Lilla Edet", "Ale", "Lerum", "Partille", "Härryda",
-    "Mölndal", "Kungälv", "Stenungsund", "Tjörn", "Orust", "Herrljunga", "Vårgårda", "Bollebygd", "Mark", "Svenljunga", "Tranemo"
+    "Mölndal", "Kungälv", "Stenungsund", "Tjörn", "Orust", "Herrljunga", "Vårgårda", "Bollebygd", "Mark", "Svenljunga", "Tranemo",
+    // Balancing Additions (Q, X, Z, Å, Ä, Ö)
+    "Kvikkjokk", "Zinkgruvan", "Vaxholm", "Yxlan", "Axvall", "Saxnäs", "Oxberg",
+    "Åhus", "Åtvidaberg", "Åre", "Åsele", "Ånge", "Åsarna",
+    "Älvsbyn", "Älvsjö", "Vännäs", "Järpen", "Särna", "Tällberg",
+    "Överkalix", "Övertorneå", "Östhammar", "Öregrund", "Örkelljunga"
 ];
 
 export const WORLD_CITIES = [
@@ -42,7 +47,13 @@ export const WORLD_CITIES = [
     "Manchester", "Marseille", "Miami", "Minsk", "Montreal", "Napoli", "Osaka", "Ottawa", "Perth", "Philadelphia",
     "Phnom Penh", "Phoenix", "Portland", "Riga", "Riyadh", "Rotterdam", "San Diego", "Sao Paulo", "Seattle", "Sevilla",
     "Shenzhen", "Sofia", "St. Petersburg", "Stuttgart", "Taipei", "Tallinn", "Tasjkent", "Tbilisi", "Tripoli", "Tunis",
-    "Turin", "Valencia", "Vilnius", "Washington", "Wellington", "Zagreb"
+    "Turin", "Valencia", "Vilnius", "Washington", "Wellington", "Zagreb",
+    // Balancing Additions
+    "Quito", "Quebec", "Queenstown", "Qingdao",
+    "Xi'an", "Xiamen", "Alexandria", "Bordeaux", "Halifax", "Luxor", "Oaxaca",
+    "Wuhan", "Winnipeg", "Windhoek", "Warszawa",
+    "Zanzibar", "Zaragoza", "Graz", "La Paz", "Suez", "Zhengzhou",
+    "Åbo", "Köln"
 ];
 
 export const NAMES = [
@@ -126,7 +137,13 @@ export const NAMES = [
     "Wei", "Wu",
     "Xi",
     "Yara", "Yasmin", "Yoko", "Yuki", "Yuna", "Yusuf",
-    "Zahra", "Zayn"
+    "Zahra", "Zayn",
+    // Balancing Additions
+    "Quinn", "Quentin", "Quintus", "Qasim",
+    "Xander", "Xenia", "Sixten", "Dexter", "Beatrix", "Maximilian", "Roxana",
+    "Wera", "Waldemar", "Wendy", "Winston", "Wilhelmina",
+    "Zara", "Zelda", "Zeke", "Zlatan", "Zoe", "Zakarias", "Inez", "Aziz",
+    "Åslög", "Ängla", "Östen", "Öjvind"
 ];
 
 const ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
