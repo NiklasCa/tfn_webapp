@@ -31,6 +31,9 @@ function App() {
 
   useEffect(() => {
     pickNewWord();
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      setStatus('⚠️ Din webbläsare saknar stöd för röst. Använd Google Chrome.');
+    }
   }, [mode]);
 
   // Ensure codeMax is never less than codeMin
