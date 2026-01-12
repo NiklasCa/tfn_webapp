@@ -26,6 +26,7 @@ function App() {
   const [status, setStatus] = useState('Välj läge och tryck på Starta');
   const [results, setResults] = useState([]); // All results for the current word
   const [lastResults, setLastResults] = useState([]); // Results for the very last speech event
+  const [historyStats, setHistoryStats] = useState({ correct: 0, total: 0 });
   const charIndexRef = useRef(0);
   const speechRef = useRef(null);
 
@@ -58,9 +59,28 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
     // Explicitly disabling exhaustive-deps for pickNewWord/toggleListening loop if needed, 
     // but including them should be fine as long as they don't trigger frequent re-renders in a loop.
-  }, [isListening, selectedCategories, codeMin, codeMax, codeUseLetters, codeUseNumbers, codeUseHyphen]);
+  }, [
+    isListening,
+    selectedCategories,
+    codeMin,
+    codeMax,
+    codeUseLetters,
+    codeUseNumbers,
+    codeUseHyphen,
+    results, // Fix: Add results to update closure
+    currentWord // Fix: Add currentWord
+  ]);
 
   const pickNewWord = () => {
+    if (currentWord) {
+      const wordCorrect = results.filter(r => r && r.correct).length;
+      const wordTotal = currentWord.replace(/ /g, '').length;
+      setHistoryStats(prev => ({
+        correct: prev.correct + wordCorrect,
+        total: prev.total + wordTotal
+      }));
+    }
+
     const pool = getWordPool(selectedCategories, codeMin, codeMax, codeUseLetters, codeUseNumbers, codeUseHyphen);
     const word = pool[Math.floor(Math.random() * pool.length)];
     setCurrentWord(word.toUpperCase());
@@ -407,8 +427,8 @@ function App() {
     return alphabet.letters[char] || alphabet.numbers[char] || alphabet.symbols[char] || char;
   };
 
-  const statsCorrect = results.filter(r => r && r.correct).length;
-  const statsTotal = currentWord.replace(/ /g, '').length;
+  const statsCorrect = historyStats.correct + results.filter(r => r && r.correct).length;
+  const statsTotal = historyStats.total + currentWord.replace(/ /g, '').length;
   const statsPercent = statsTotal > 0 ? Math.round((statsCorrect / statsTotal) * 100) : 0;
 
   return (
@@ -422,7 +442,96 @@ function App() {
 
       <main className="card">
         {/* SETTINGS AREA */}
-        <div className="settings-container" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+        <div className="stats" style={{ marginTop: 0, paddingTop: 0, borderTop: 'none', marginBottom: '2rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+          <div className="stat-item">
+            <span className="stat-value">{statsCorrect}</span>
+            <span className="stat-label">Rätt</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-value">
+              {statsPercent}%
+            </span>
+            <span className="stat-label">Klart</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-value">{statsTotal}</span>
+            <span className="stat-label">Längd</span>
+          </div>
+        </div>
+
+        <div className="current-word">
+          <div className="word-display">
+            {currentWord.split('').map((char, index) => {
+              const res = results[index];
+              let className = "char-item";
+              if (res) {
+                className += res.correct ? " correct" : " incorrect";
+              } else if (index === charIndex) {
+                className += " active";
+              }
+
+              if (char === ' ') {
+                return <span key={index} style={{ display: 'inline-block', width: '0.8em' }}></span>;
+              }
+
+              return (
+                <span key={index} className={className}>
+                  {char === '0' ? 'Ø' : char}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mic-container">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+              <button
+                className={`mic-button ${isListening ? 'listening' : ''}`}
+                onClick={toggleListening}
+                title={isListening ? "Stoppa (Mellanslag)" : "Starta mikrofonen (Mellanslag)"}
+              >
+                {isListening ? <Mic size={32} /> : <MicOff size={32} />}
+              </button>
+              <span className="desktop-hint">Space</span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+              <button className="next-word-button" onClick={pickNewWord} title="Nästa ord (Pil Höger)">
+                <ArrowRight size={32} />
+              </button>
+              <span className="desktop-hint">➡</span>
+            </div>
+          </div>
+          <div className="status-text">{status}</div>
+        </div>
+
+        {lastTranscript && (
+          <div className="last-transcription">
+            <div className="transcription-header">Du sa:</div>
+            <div className="transcription-text" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem' }}>
+              {lastResults.map((res, i) => (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <span className={res.correct ? 'correct-indicator' : 'incorrect-indicator'}>
+                    {res.transcript}
+                  </span>
+                  {!res.correct && (
+                    <span style={{ fontSize: '0.7rem', opacity: 0.8, color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                      ({res.expected})
+                    </span>
+                  )}
+                </div>
+              ))}
+              {lastTranscript && (
+                <div style={{ fontSize: '0.8rem', opacity: 0.5, marginTop: '0.5rem', width: '100%', textAlign: 'center' }}>
+                  Hörde: "{lastTranscript}"
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="settings-container" style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }} onClick={() => setShowSettings(!showSettings)}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Settings2 size={16} />
@@ -541,95 +650,6 @@ function App() {
 
             </div>
           )}
-        </div>
-
-        <div className="current-word">
-          <div className="word-display">
-            {currentWord.split('').map((char, index) => {
-              const res = results[index];
-              let className = "char-item";
-              if (res) {
-                className += res.correct ? " correct" : " incorrect";
-              } else if (index === charIndex) {
-                className += " active";
-              }
-
-              if (char === ' ') {
-                return <span key={index} style={{ display: 'inline-block', width: '0.8em' }}></span>;
-              }
-
-              return (
-                <span key={index} className={className}>
-                  {char === '0' ? 'Ø' : char}
-                </span>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="mic-container">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
-              <button
-                className={`mic-button ${isListening ? 'listening' : ''}`}
-                onClick={toggleListening}
-                title={isListening ? "Stoppa (Mellanslag)" : "Starta mikrofonen (Mellanslag)"}
-              >
-                {isListening ? <Mic size={32} /> : <MicOff size={32} />}
-              </button>
-              <span className="desktop-hint">Space</span>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
-              <button className="next-word-button" onClick={pickNewWord} title="Nästa ord (Pil Höger)">
-                <ArrowRight size={32} />
-              </button>
-              <span className="desktop-hint">➡</span>
-            </div>
-          </div>
-          <div className="status-text">{status}</div>
-        </div>
-
-        {lastTranscript && (
-          <div className="last-transcription">
-            <div className="transcription-header">Du sa:</div>
-            <div className="transcription-text" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem' }}>
-              {lastResults.map((res, i) => (
-                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <span className={res.correct ? 'correct-indicator' : 'incorrect-indicator'}>
-                    {res.transcript}
-                  </span>
-                  {!res.correct && (
-                    <span style={{ fontSize: '0.7rem', opacity: 0.8, color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                      ({res.expected})
-                    </span>
-                  )}
-                </div>
-              ))}
-              {lastTranscript && (
-                <div style={{ fontSize: '0.8rem', opacity: 0.5, marginTop: '0.5rem', width: '100%', textAlign: 'center' }}>
-                  Hörde: "{lastTranscript}"
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        <div className="stats">
-          <div className="stat-item">
-            <span className="stat-value">{statsCorrect}</span>
-            <span className="stat-label">Rätt</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-value">
-              {statsPercent}%
-            </span>
-            <span className="stat-label">Klart</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-value">{statsTotal}</span>
-            <span className="stat-label">Längd</span>
-          </div>
         </div>
       </main>
 
