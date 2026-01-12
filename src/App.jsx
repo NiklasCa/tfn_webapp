@@ -100,7 +100,6 @@ function App() {
 
   const handleSpeechResult = (transcript, alternatives) => {
     console.log('--- Speech Debug ---');
-    console.log('Engine:', engine);
     console.log('Raw Transcript:', transcript);
 
     const alphabet = ALPHABETS[mode];
