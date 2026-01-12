@@ -426,26 +426,21 @@ function App() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Ordkategorier:</label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                    <input type="checkbox" checked={selectedCategories.has('places_se')} onChange={() => toggleCategory('places_se')} />
+                  <button className={`btn btn-sm ${selectedCategories.has('places_se') ? 'btn-active' : 'btn-outline'}`} onClick={() => toggleCategory('places_se')}>
                     Svenska orter
-                  </label>
-                  <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                    <input type="checkbox" checked={selectedCategories.has('cities_world')} onChange={() => toggleCategory('cities_world')} />
+                  </button>
+                  <button className={`btn btn-sm ${selectedCategories.has('cities_world') ? 'btn-active' : 'btn-outline'}`} onClick={() => toggleCategory('cities_world')}>
                     Världsstäder
-                  </label>
-                  <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                    <input type="checkbox" checked={selectedCategories.has('names')} onChange={() => toggleCategory('names')} />
+                  </button>
+                  <button className={`btn btn-sm ${selectedCategories.has('names') ? 'btn-active' : 'btn-outline'}`} onClick={() => toggleCategory('names')}>
                     Namn (Mixat)
-                  </label>
-                  <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                    <input type="checkbox" checked={selectedCategories.has('codes')} onChange={() => toggleCategory('codes')} />
+                  </button>
+                  <button className={`btn btn-sm ${selectedCategories.has('codes') ? 'btn-active' : 'btn-outline'}`} onClick={() => toggleCategory('codes')}>
                     Slumpmässiga Koder
-                  </label>
-                  <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                    <input type="checkbox" checked={selectedCategories.has('mgrs')} onChange={() => toggleCategory('mgrs')} />
+                  </button>
+                  <button className={`btn btn-sm ${selectedCategories.has('mgrs') ? 'btn-active' : 'btn-outline'}`} onClick={() => toggleCategory('mgrs')}>
                     MGRS Koordinater
-                  </label>
+                  </button>
                 </div>
               </div>
 
@@ -480,19 +475,16 @@ function App() {
                       />
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-                    <label style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}>
-                      <input type="checkbox" checked={codeUseLetters} onChange={(e) => setCodeUseLetters(e.target.checked)} />
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                    <button className={`btn btn-sm ${codeUseLetters ? 'btn-active' : 'btn-outline'}`} onClick={() => setCodeUseLetters(!codeUseLetters)}>
                       Bokstäver
-                    </label>
-                    <label style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}>
-                      <input type="checkbox" checked={codeUseNumbers} onChange={(e) => setCodeUseNumbers(e.target.checked)} />
+                    </button>
+                    <button className={`btn btn-sm ${codeUseNumbers ? 'btn-active' : 'btn-outline'}`} onClick={() => setCodeUseNumbers(!codeUseNumbers)}>
                       Siffror
-                    </label>
-                    <label style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}>
-                      <input type="checkbox" checked={codeUseHyphen} onChange={(e) => setCodeUseHyphen(e.target.checked)} />
+                    </button>
+                    <button className={`btn btn-sm ${codeUseHyphen ? 'btn-active' : 'btn-outline'}`} onClick={() => setCodeUseHyphen(!codeUseHyphen)}>
                       Bindestreck (-)
-                    </label>
+                    </button>
                   </div>
                 </div>
               )}
