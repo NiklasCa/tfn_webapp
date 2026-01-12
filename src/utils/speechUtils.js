@@ -76,8 +76,12 @@ export const normalizeResult = (transcript, alternatives = [], alphabetMode, tar
     const aliases = {
         'gustaf': 'gustav',
         'qvintus': 'quintus',
-        'zäta': 'zeta',
+        'zeta': 'zäta',     // Zeta -> Zäta
+        'z': 'zäta',        // Z -> Zäta
+        'q': 'qvintus',     // Q -> Qvintus
         'caesar': 'cesar', // Fixes "Caesar" -> "Cesar" mismatch
+        'särkses': 'xerxes', // Alias for Xerxes
+        'serxes': 'xerxes',  // Alias for Xerxes
     };
 
     if (aliases[normalized]) {
@@ -87,7 +91,22 @@ export const normalizeResult = (transcript, alternatives = [], alphabetMode, tar
     return normalized;
 };
 
-export class SpeechHandler {
+/**
+ * Pre-processes the raw transcript to fix common merge errors or misinterpretations
+ * BEFORE splitting into words.
+ */
+export const preProcessTranscript = (transcript) => {
+    let t = transcript.toLowerCase();
+
+    // Fix "Zäta Petter" -> "zetter"
+    t = t.replace(/\bzetter\b/g, 'zäta petter');
+
+    // Add other common phrase fixes here if needed
+
+    return t;
+};
+
+export class GoogleSpeechHandler {
     constructor(onResult, onError, onEnd, lang = 'sv-SE') {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
