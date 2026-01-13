@@ -87,6 +87,9 @@ export const normalizeResult = (transcript, alternatives = [], alphabetMode, tar
         'caesar': 'cesar', // Fixes "Caesar" -> "Cesar" mismatch
         'särkses': 'xerxes', // Alias for Xerxes
         'serxes': 'xerxes',  // Alias for Xerxes
+        'saxes': 'xerxes',   // Alias for Xerxes
+        'zaxes': 'xerxes',   // Alias for Xerxes
+        'x': 'xerxes',   // Alias for Xerxes
     };
 
     if (aliases[normalized]) {

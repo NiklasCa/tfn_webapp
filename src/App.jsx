@@ -27,6 +27,7 @@ function App() {
   const [results, setResults] = useState([]); // All results for the current word
   const [lastResults, setLastResults] = useState([]); // Results for the very last speech event
   const [historyStats, setHistoryStats] = useState({ correct: 0, total: 0 });
+  const [wordCount, setWordCount] = useState(0);
   const charIndexRef = useRef(0);
   const speechRef = useRef(null);
 
@@ -75,10 +76,15 @@ function App() {
     if (currentWord) {
       const wordCorrect = results.filter(r => r && r.correct).length;
       const wordTotal = currentWord.replace(/ /g, '').length;
-      setHistoryStats(prev => ({
-        correct: prev.correct + wordCorrect,
-        total: prev.total + wordTotal
-      }));
+      // Only add to history if any attempt was made (results exist)
+      // This allows skipping words without penalty (0% impact)
+      if (results.length > 0) {
+        setHistoryStats(prev => ({
+          correct: prev.correct + wordCorrect,
+          total: prev.total + wordTotal
+        }));
+      }
+      setWordCount(prev => prev + 1);
     }
 
     const pool = getWordPool(selectedCategories, codeMin, codeMax, codeUseLetters, codeUseNumbers, codeUseHyphen);
@@ -427,14 +433,16 @@ function App() {
     return alphabet.letters[char] || alphabet.numbers[char] || alphabet.symbols[char] || char;
   };
 
-  const statsCorrect = historyStats.correct + results.filter(r => r && r.correct).length;
-  const statsTotal = historyStats.total + currentWord.replace(/ /g, '').length;
+  const currentWordCorrect = results.filter(r => r && r.correct).length;
+  const currentWordTotal = currentWord.replace(/ /g, '').length;
+  const statsCorrect = historyStats.correct + currentWordCorrect;
+  const statsTotal = historyStats.total + results.filter(r => r).length;
   const statsPercent = statsTotal > 0 ? Math.round((statsCorrect / statsTotal) * 100) : 0;
 
   return (
     <div className="app-container">
       <header>
-        <h1>Bokstaveringstränaren</h1>
+        <h1>Träna Bokstavering</h1>
         <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
           Träna på bokstaveringsalfabetet med röstigenkänning
         </p>
@@ -444,18 +452,18 @@ function App() {
         {/* SETTINGS AREA */}
         <div className="stats" style={{ marginTop: 0, paddingTop: 0, borderTop: 'none', marginBottom: '2rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
           <div className="stat-item">
-            <span className="stat-value">{statsCorrect}</span>
-            <span className="stat-label">Rätt</span>
+            <span className="stat-value">{wordCount + 1}</span>
+            <span className="stat-label">Ord</span>
           </div>
           <div className="stat-item">
             <span className="stat-value">
               {statsPercent}%
             </span>
-            <span className="stat-label">Klart</span>
+            <span className="stat-label">Totalt</span>
           </div>
           <div className="stat-item">
-            <span className="stat-value">{statsTotal}</span>
-            <span className="stat-label">Längd</span>
+            <span className="stat-value">{currentWordCorrect}/{currentWordTotal}</span>
+            <span className="stat-label">Rätt</span>
           </div>
         </div>
 
