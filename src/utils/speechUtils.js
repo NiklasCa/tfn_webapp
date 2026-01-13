@@ -90,6 +90,7 @@ export const normalizeResult = (transcript, alternatives = [], alphabetMode, tar
         'saxes': 'xerxes',   // Alias for Xerxes
         'zaxes': 'xerxes',   // Alias for Xerxes
         'x': 'xerxes',   // Alias for Xerxes
+        'sigrid': 'sigurd',   // Alias for Sigurd
     };
 
     if (aliases[normalized]) {

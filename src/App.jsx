@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Trophy, AlertCircle, Settings2, Cpu, Cloud, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Mic, MicOff, Settings2, ChevronDown, ChevronUp, ArrowRight, Repeat } from 'lucide-react';
 import { ALPHABETS } from './data/alphabets';
 import { getWordPool } from './data/wordLists';
 import { GoogleSpeechHandler, normalizeResult, preProcessTranscript } from './utils/speechUtils';
@@ -28,6 +28,16 @@ function App() {
   const [lastResults, setLastResults] = useState([]); // Results for the very last speech event
   const [historyStats, setHistoryStats] = useState({ correct: 0, total: 0 });
   const [wordCount, setWordCount] = useState(0);
+
+  // Auto Mode State
+  const [isAutoMode, setIsAutoMode] = useState(false);
+  const [autoPhase, setAutoPhase] = useState('IDLE'); // IDLE, ACTIVE, EVALUATION, PREPARATION
+  const [timer, setTimer] = useState(0);
+  const [autoSettings, setAutoSettings] = useState({
+    evalTime: 10,
+    prepTime: 5,
+    require100: false
+  });
   const charIndexRef = useRef(0);
   const speechRef = useRef(null);
 
@@ -428,6 +438,70 @@ function App() {
     }
   };
 
+  // Auto Mode Logic
+  const toggleAutoMode = () => {
+    if (isAutoMode) {
+      setIsAutoMode(false);
+      setAutoPhase('IDLE');
+      stopListening();
+    } else {
+      setIsAutoMode(true);
+      setAutoPhase('PREPARATION'); // Start with a prep phase
+      setTimer(autoSettings.prepTime);
+    }
+  };
+
+  useEffect(() => {
+    if (!isAutoMode || autoPhase === 'IDLE' || autoPhase === 'ACTIVE') return;
+
+    const interval = setInterval(() => {
+      setTimer(t => {
+        if (t <= 1) return 0;
+        return t - 1;
+      });
+    }, 1000);
+
+    // Handle expiry when timer hits 0 (checked via effect below or implicit logic)
+    // Actually, setting interval to check t <= 1 and returning 0 creates a rendering cycle where t maps to 0. 
+    // We need to trigger the phase change.
+
+    return () => clearInterval(interval);
+  }, [isAutoMode, autoPhase]);
+
+  // Separate effect to handle timer === 0
+  useEffect(() => {
+    if (!isAutoMode || timer > 0) return;
+
+    if (autoPhase === 'EVALUATION') {
+      pickNewWord();
+      setAutoPhase('PREPARATION');
+      setTimer(autoSettings.prepTime);
+    } else if (autoPhase === 'PREPARATION') {
+      setAutoPhase('ACTIVE');
+      startListening();
+    }
+  }, [timer, isAutoMode, autoPhase, autoSettings]);
+
+  // Monitor Listening State for Auto Transitions
+  useEffect(() => {
+    if (!isAutoMode || autoPhase !== 'ACTIVE' || isListening) return;
+
+    // Mic stopped. Check if we should proceed or retry.
+    const currentWordLen = currentWord.replace(/ /g, '').length;
+    const correctLen = results.filter(r => r && r.correct).length;
+    const isPerfect = correctLen === currentWordLen && results.length >= currentWordLen;
+
+    if (autoSettings.require100 && !isPerfect) {
+      // Retry!
+      setStatus("Försök igen... (Kräver 100%)");
+      setTimeout(() => startListening(), 500); // Small delay to prevent instant loop
+    } else {
+      // Go to Evaluation
+      setAutoPhase('EVALUATION');
+      setTimer(autoSettings.evalTime);
+    }
+  }, [isAutoMode, autoPhase, isListening, results, currentWord, autoSettings]);
+
   const getCharHint = (char) => {
     const alphabet = ALPHABETS[mode];
     return alphabet.letters[char] || alphabet.numbers[char] || alphabet.symbols[char] || char;
@@ -493,11 +567,27 @@ function App() {
 
         <div className="mic-container">
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+
+            {/* Auto Toggle Button */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+              <button
+                className={`next-word-button ${isAutoMode ? 'btn-active' : ''}`}
+                style={{ borderColor: isAutoMode ? 'var(--accent)' : 'rgba(255,255,255,0.2)', color: isAutoMode ? 'var(--accent)' : 'inherit' }}
+                onClick={toggleAutoMode}
+                title="Automatiskt läge"
+              >
+                <Repeat size={24} />
+              </button>
+              <span className="desktop-hint">Auto</span>
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
               <button
                 className={`mic-button ${isListening ? 'listening' : ''}`}
                 onClick={toggleListening}
                 title={isListening ? "Stoppa (Mellanslag)" : "Starta mikrofonen (Mellanslag)"}
+                disabled={isAutoMode && (autoPhase === 'EVALUATION' || autoPhase === 'PREPARATION')}
+                style={{ opacity: (isAutoMode && (autoPhase === 'EVALUATION' || autoPhase === 'PREPARATION')) ? 0.5 : 1 }}
               >
                 {isListening ? <Mic size={32} /> : <MicOff size={32} />}
               </button>
@@ -505,13 +595,37 @@ function App() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+              {/* Hide Next button in Prep phase to avoid double-skip? Or just keep enabled? Keep enabled for manual override. */}
               <button className="next-word-button" onClick={pickNewWord} title="Nästa ord (Pil Höger)">
                 <ArrowRight size={32} />
               </button>
               <span className="desktop-hint">➡</span>
             </div>
           </div>
-          <div className="status-text">{status}</div>
+
+          {/* Status / Countdown Display */}
+          <div className="status-text" style={{ marginTop: '0.5rem', height: 'auto', minHeight: '1.5rem' }}>
+            {(isAutoMode && (autoPhase === 'EVALUATION' || autoPhase === 'PREPARATION')) ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem' }}>
+                <div style={{ fontSize: '0.9rem', color: 'var(--accent)', fontWeight: 'bold' }}>
+                  {autoPhase === 'EVALUATION' ? `Nästa ord om: ${timer}s` : `Börjar om: ${timer}s`}
+                </div>
+                {/* Visual Bar */}
+                <div style={{ width: '100px', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      height: '100%',
+                      background: 'var(--accent)',
+                      width: `${(timer / (autoPhase === 'EVALUATION' ? autoSettings.evalTime : autoSettings.prepTime)) * 100}%`,
+                      transition: 'width 1s linear'
+                    }}
+                  />
+                </div>
+              </div>
+            ) : (
+              status
+            )}
+          </div>
         </div>
 
         {lastTranscript && (
@@ -579,6 +693,50 @@ function App() {
                   <button className={`btn btn-sm ${selectedCategories.has('mgrs') ? 'btn-active' : 'btn-outline'}`} onClick={() => toggleCategory('mgrs')}>
                     MGRS Koordinater
                   </button>
+                </div>
+              </div>
+
+              {/* Auto Mode Settings */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Automatiskt Läge:</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', border: '1px solid var(--border-color)', padding: '0.75rem', borderRadius: '4px' }}>
+
+                  {/* Require 100% Toggle */}
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={autoSettings.require100}
+                      onChange={(e) => setAutoSettings(prev => ({ ...prev, require100: e.target.checked }))}
+                    />
+                    <span>Kräv 100% för att gå vidare</span>
+                  </label>
+
+                  {/* Eval Time Slider */}
+                  <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                      <span>Tid för utvärdering:</span>
+                      <span>{autoSettings.evalTime}s</span>
+                    </div>
+                    <input
+                      type="range" min="5" max="60" step="1"
+                      value={autoSettings.evalTime}
+                      onChange={(e) => setAutoSettings(prev => ({ ...prev, evalTime: parseInt(e.target.value) }))}
+                    />
+                  </div>
+
+                  {/* Prep Time Slider */}
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                      <span>Tid för förberedelse:</span>
+                      <span>{autoSettings.prepTime}s</span>
+                    </div>
+                    <input
+                      type="range" min="3" max="15" step="1"
+                      value={autoSettings.prepTime}
+                      onChange={(e) => setAutoSettings(prev => ({ ...prev, prepTime: parseInt(e.target.value) }))}
+                    />
+                  </div>
+
                 </div>
               </div>
 
