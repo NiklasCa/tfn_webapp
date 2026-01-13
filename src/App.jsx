@@ -3,6 +3,9 @@ import { Mic, MicOff, Settings2, ChevronDown, ChevronUp, ArrowRight, Repeat } fr
 import { ALPHABETS } from './data/alphabets';
 import { getWordPool } from './data/wordLists';
 import { GoogleSpeechHandler, normalizeResult, preProcessTranscript } from './utils/speechUtils';
+import { useWakeLock } from './hooks/useWakeLock';
+
+const APP_VERSION = '1.0.0';
 
 function App() {
   const [mode, setMode] = useState('swedish'); // 'swedish' | 'nato'
@@ -38,6 +41,10 @@ function App() {
     prepTime: 5,
     require100: false
   });
+
+  // Keep screen awake in Auto Mode
+  useWakeLock(isAutoMode);
+
   const charIndexRef = useRef(0);
   const speechRef = useRef(null);
 
@@ -79,7 +86,8 @@ function App() {
     codeUseNumbers,
     codeUseHyphen,
     results, // Fix: Add results to update closure
-    currentWord // Fix: Add currentWord
+    currentWord, // Fix: Add currentWord
+    mode // Fix: Add mode to dependency
   ]);
 
   const pickNewWord = () => {
@@ -97,7 +105,7 @@ function App() {
       setWordCount(prev => prev + 1);
     }
 
-    const pool = getWordPool(selectedCategories, codeMin, codeMax, codeUseLetters, codeUseNumbers, codeUseHyphen);
+    const pool = getWordPool(selectedCategories, codeMin, codeMax, codeUseLetters, codeUseNumbers, codeUseHyphen, mode === 'nato');
     const word = pool[Math.floor(Math.random() * pool.length)];
     setCurrentWord(word.toUpperCase());
     setCharIndex(0);
@@ -818,6 +826,17 @@ function App() {
           )}
         </div>
       </main>
+
+      {/* Version Footer */}
+      <div style={{
+        textAlign: 'center',
+        padding: '1rem',
+        fontSize: '0.75rem',
+        opacity: 0.5,
+        fontFamily: 'monospace'
+      }}>
+        v{APP_VERSION}
+      </div>
 
     </div>
   );

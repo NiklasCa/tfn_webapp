@@ -28,7 +28,18 @@ export const SWEDISH_PLACES = [
     "Kvikkjokk", "Zinkgruvan", "Vaxholm", "Yxlan", "Axvall", "Saxnäs", "Oxberg",
     "Åhus", "Åtvidaberg", "Åre", "Åsele", "Ånge", "Åsarna",
     "Älvsbyn", "Älvsjö", "Vännäs", "Järpen", "Särna", "Tällberg",
-    "Överkalix", "Övertorneå", "Östhammar", "Öregrund", "Örkelljunga"
+    "Överkalix", "Övertorneå", "Östhammar", "Öregrund", "Örkelljunga",
+    // Expansion 50%
+    "Båstad", "Danderyd", "Ekerö", "Enköping", "Gustavsberg", "Götene", "Hammarö", "Haparanda", "Heby", "Herrljunga",
+    "Hällefors", "Hörby", "Höör", "Järfälla", "Klippan", "Knivsta", "Kramfors", "Krokom", "Leksand", "Lerum",
+    "Lilla Edet", "Lomma", "Lysekil", "Malå", "Mark", "Mellerud", "Munkedal", "Munkfors", "Nordanstig", "Nordmaling",
+    "Norrtälje", "Norsjö", "Nykvarn", "Nynäshamn", "Ockelbo", "Ovanåker", "Pajala", "Perstorp", "Ragunda", "Robertsfors",
+    "Salem", "Sjöbo", "Skinnskatteberg", "Skurup", "Smedjebacken", "Solna", "Staffanstorp", "Stenungsund", "Storfors", "Storuman",
+    "Strömsund", "Sundbyberg", "Sunne", "Svalöv", "Svedala", "Svenljunga", "Söderköping", "Sörusele", "Tanum", "Tibro",
+    "Tierp", "Timrå", "Tjörn", "Tomelilla", "Torsby", "Tyresö", "Täby", "Töreboda", "Ulricehamn", "Upplands Väsby",
+    "Upplands-Bro", "Vadstena", "Vaggeryd", "Valdemarsvik", "Vallentuna", "Vansbro", "Vara", "Vaxholm", "Vellinge", "Vilhelmina",
+    "Värmdö", "Vårgårda", "Ydre", "Åre", "Årjäng", "Åsele", "Åstorp", "Åtvidaberg", "Älmhult", "Älvdalen",
+    "Älvkarleby", "Älvsbyn", "Öckerö", "Ödeshög", "Överkalix", "Övertorneå"
 ];
 
 export const WORLD_CITIES = [
@@ -53,7 +64,16 @@ export const WORLD_CITIES = [
     "Xi'an", "Xiamen", "Alexandria", "Bordeaux", "Halifax", "Luxor", "Oaxaca",
     "Wuhan", "Winnipeg", "Windhoek", "Warszawa",
     "Zanzibar", "Zaragoza", "Graz", "La Paz", "Suez", "Zhengzhou",
-    "Åbo", "Köln"
+    "Åbo", "Köln",
+    // Expansion 50%
+    "Abidjan", "Abu Dhabi", "Accra", "Adelaide", "Ahmedabad", "Aleppo", "Alexandria", "Almaty", "Antananarivo", "Asuncion",
+    "Bagdad", "Bamako", "Bandung", "Bangalore", "Barranquilla", "Basra", "Belfast", "Belgrad", "Belo Horizonte", "Bengaluru",
+    "Bergen", "Birmingham", "Bishkek", "Bissau", "Bogota", "Brasilia", "Brazzaville", "Brisbane", "Brno", "Bucharest",
+    "Busan", "Cali", "Canberra", "Caracas", "Cebu", "Chengdu", "Chittagong", "Chongqing", "Colombo", "Cordoba",
+    "Curitiba", "Daegu", "Dalian", "Dammamin", "Davao", "Dhaka", "Djibouti", "Dongguan", "Douala", "Durban",
+    "Dusjanbe", "Edmonton", "Faisalabad", "Fez", "Fortaleza", "Freetown", "Gaborone", "Gdansk", "Geneve", "Georgetown",
+    "Giza", "Goa", "Guadalajara", "Guatemala City", "Guayaquil", "Haifa", "Hangzhou", "Harbin", "Hiroshima", "Homs",
+    "Incheon", "Indore", "Isfahan", "Izmir", "Jaipur", "Jeddah", "Jerevan", "Jinan", "Kabul", "Kampala"
 ];
 
 export const NAMES = [
@@ -115,6 +135,34 @@ export const NAMES = [
     "Xavier",
     "Yaroslav", "Yves",
     "Zdenek", "Zofia", "Zoltan", "Zoran", "Zuzana",
+    // Expansion 50% (European)
+    "Adelina", "Adriano", "Agatha", "Albina", "Aleksander", "Anastasia", "Anatoli", "Andrzej", "Aneta", "Angelina",
+    "Antonina", "Artem", "Aurelia", "Balazs", "Balthasar", "Barnabas", "Beatriz", "Benedek", "Bettina", "Blanka",
+    "Bogumil", "Bojan", "Borislav", "Branislav", "Brigitte", "Carla", "Carmela", "Casimiro", "Catalina", "Celestina",
+    "Ciprian", "Clarissa", "Cosimo", "Cristina", "Dalibor", "Danica", "Danilo", "Dante", "Daria", "Delia",
+    "Desislav", "Detlef", "Dietmar", "Dimitrios", "Dina", "Dobromir", "Dolores", "Dragan", "Dubravka", "Edita",
+    "Eleonora", "Elzbieta", "Emilian", "Esteban", "Eugenio", "Ewa", "Fabiana", "Fabrizio", "Fausto", "Federica",
+    "Ferdinand", "Fiorella", "Flavia", "Francesca", "Francisco", "Gaetano", "Galina", "Gennaro", "Georgios", "Geraldo",
+    "Giacomo", "Gianna", "Giselle", "Giuliana", "Goran", "Gordana", "Grazia", "Grigor", "Guido", "Gunther",
+    "Halina", "Hartmut", "Helena", "Helmut", "Horst", "Ignazio", "Ildiko", "Ileana", "Imre", "Ioana",
+    "Jacek", "Jadwiga", "Jana", "Jarmila", "Jaromir", "Joaquin", "Jolanta", "Jozef", "Julian", "Juraj",
+    "Kalina", "Kamen", "Karolina", "Kazimierz", "Kinga", "Kiril", "Klaudia", "Konstantin", "Kornelia", "Krasimir",
+    "Ladislav", "Larisa", "Lavinia", "Lech", "Lidia", "Liliana", "Liudmila", "Liviu", "Ljubomir", "Loretta",
+    "Luciana", "Ludmila", "Luigi", "Luiz", "Lukas", "Lyubomir", "Malin", "Manuela", "Marcelo", "Mariana",
+    "Marija", "Marina", "Maris", "Marius", "Marko", "Martine", "Massimo", "Matteo", "Mauro", "Melinda",
+    "Mercedes", "Milena", "Mircea", "Mirela", "Mirko", "Mladen", "Nadine", "Nandor", "Natasa", "Nebojsa",
+    "Nenad", "Nicoletta", "Niels", "Nikitas", "Nikolina", "Ognjen", "Oleg", "Olimpia", "Orsolya", "Othmar",
+    "Otmar", "Ottilia", "Panagiotis", "Paola", "Patrizia", "Paulette", "Pavla", "Pietro", "Plamen", "Polina",
+    "Predrag", "Radmila", "Radoslav", "Radu", "Raffaele", "Raimund", "Raisa", "Ramona", "Raquel", "Rastislav",
+    "Renata", "Renato", "Riegina", "Rodolfo", "Romana", "Romeo", "Rosalia", "Rosario", "Rosen", "Rostislav",
+    "Roxana", "Rozalia", "Ruben", "Rumen", "Ruslan", "Sabrina", "Salvador", "Sandor", "Sanja", "Saul",
+    "Saverio", "Savvas", "Sebastiano", "Sergej", "Severin", "Siegfried", "Silke", "Silvana", "Simona", "Slavka",
+    "Slobodan", "Sonia", "Sorin", "Spas", "Spiro", "Srecko", "Stamatia", "Stanimir", "Stanka", "Stavros",
+    "Stjepan", "Stojan", "Svenja", "Szilvia", "Tamara", "Tania", "Taras", "Tatyana", "Teodora", "Teofilo",
+    "Terezia", "Thalia", "Thekla", "Theodoros", "Tihomir", "Timea", "Tiziano", "Todor", "Tomislav", "Traian",
+    "Umberto", "Ute", "Vaclav", "Valdemar", "Valentin", "Valeriu", "Vanda", "Vasiliki", "Velimir", "Venceslav",
+    "Vera", "Vesna", "Vincenzo", "Viola", "Viorica", "Vittorio", "Vlad", "Vlasta", "Wanda", "Wieslaw",
+    "Wilfried", "Wolf", "Xenia", "Yannick", "Yolanda", "Yuri", "Zarko", "Zivko", "Zlatko", "Zsolt",
 
     // "Exotiska" / Internationella / Övriga Världen ~40+
     "Aarav", "Abdullah", "Aiko", "Ali", "Amara", "Amin", "Arjun", "Ayesha",
@@ -138,12 +186,39 @@ export const NAMES = [
     "Xi",
     "Yara", "Yasmin", "Yoko", "Yuki", "Yuna", "Yusuf",
     "Zahra", "Zayn",
+    // Expansion 50% (Exotic/International)
+    "Aaliyah", "Aarush", "Abbas", "Aditya", "Akira", "Akram", "Amir", "Ananya", "Anil", "Arin",
+    "Asa", "Asuka", "Ayumi", "Aziz", "Bahir", "Bao", "Bintou", "Bodhi", "Chandra", "Chang",
+    "Chin", "Dae", "Daiki", "Dakarai", "Deshi", "Dev", "Dinesh", "Diya", "Ebo", "Emi",
+    "Enid", "Esra", "Farah", "Femi", "Gamal", "Gita", "Habib", "Hadi", "Hana", "Haruto",
+    "Hashim", "Hayato", "Hikari", "Hina", "Hiro", "Hoshi", "Idris", "Iman", "Ines", "Ishaan",
+    "Jabir", "Jafari", "Jamil", "Jiang", "Jiro", "Kaito", "Kali", "Kamal", "Kania", "Kato",
+    "Kenze", "Keiko", "Kenta", "Kofi", "Koji", "Kunal", "Kwabena", "Leilani", "Liang", "Lina",
+    "Liu", "Liyana", "Lu", "Malak", "Malik", "Manish", "Masako", "Mei-Ling", "Ming", "Mohit",
+    "Muna", "Nabil", "Nadira", "Nala", "Naoki", "Narayan", "Nasim", "Naveen", "Niam", "Ning",
+    "Nori", "Nur", "Obi", "Omari", "Pardis", "Parvati", "Ping", "Qadir", "Qing", "Rajan",
+    "Rashid", "Riku", "Rina", "Rohan", "Rong", "Ryu", "Saad", "Sade", "Safiya", "Said",
+    "Salim", "Samar", "Sami", "Sana", "Sara", "Sato", "Shankar", "Shanti", "Shu",
     // Balancing Additions
     "Quinn", "Quentin", "Quintus", "Qasim",
     "Xander", "Xenia", "Sixten", "Dexter", "Beatrix", "Maximilian", "Roxana",
     "Wera", "Waldemar", "Wendy", "Winston", "Wilhelmina",
     "Zara", "Zelda", "Zeke", "Zlatan", "Zoe", "Zakarias", "Inez", "Aziz",
-    "Åslög", "Ängla", "Östen", "Öjvind"
+    "Åslög", "Ängla", "Östen", "Öjvind",
+    // Expansion 50%
+    "Aaron", "Abel", "Ada", "Adina", "Adolf", "Agaton", "Agnes", "Ahmad", "Aina", "Albert",
+    "Algot", "Allan", "Alvar", "Amal", "Amir", "Anja", "Ann", "Anneli", "Annette", "Annika",
+    "Antonia", "Arne", "Assar", "Asta", "August", "Aurora", "Barbro", "Beata", "Beatrice", "Beda",
+    "Bella", "Benjamin", "Bernhard", "Bernt", "Bert", "Betty", "Birgit", "Bjarne", "Björn", "Bodil",
+    "Boris", "Britt", "Britta", "Bror", "Carin", "Carla", "Carlos", "Casper", "Catharina", "Catrin",
+    "Charlotta", "Christina", "Claes", "Clarence", "Conny", "Dag", "Dagny", "Daisy", "Dan", "Daniella",
+    "Dante", "Dennis", "Diana", "Dick", "Disa", "Doris", "Douglas", "Edith", "Edmund", "Edvard",
+    "Egon", "Eira", "Ejnar", "Elena", "Elina", "Elis", "Elise", "Ellinor", "Elvira", "Emanuel",
+    "Emelie", "Enar", "Erland", "Erling", "Erna", "Esbjörn", "Eskil", "Ester", "Eugen", "Evert",
+    "Fanny", "Fatima", "Feliz", "Fia", "Filippa", "Folke", "Frank", "Frans", "Fred", "Frej",
+    "Fritiof", "Gert", "Gertrud", "Gittan", "Glenn", "Gerd", "Gerda", "Gilbert", "Gina", "Gisela",
+    "Gittan", "Gloria", "Gottfrid", "Grace", "Gull", "Gullan", "Gullevi", "Gun", "Gunborg", "Gundla",
+    "Gunhild", "Gunnel", "Gunni", "Gunvor", "Gurli", "Gustaf", "Gösta", "Göte", "Harald", "Harriet"
 ];
 
 const ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -209,7 +284,7 @@ export const generateMGRS = () => {
     return `${zoneNum}${band} ${sq1}${sq2} ${easting} ${northing}`;
 };
 
-export const getWordPool = (selectedCategories, codeMin = 3, codeMax = 8, useLetters = true, useNumbers = true, useHyphen = true) => {
+export const getWordPool = (selectedCategories, codeMin = 3, codeMax = 8, useLetters = true, useNumbers = true, useHyphen = true, excludeSwedish = false) => {
     let pool = [];
 
     const categories = new Set(selectedCategories);
@@ -240,6 +315,11 @@ export const getWordPool = (selectedCategories, codeMin = 3, codeMax = 8, useLet
     // Fallback if empty
     if (pool.length === 0) {
         return ["SANDBOX"]; // Fallback safe word
+    }
+
+    // Filter out Swedish characters if requested (for NATO mode)
+    if (excludeSwedish) {
+        pool = pool.filter(w => !/[ÅÄÖåäö]/.test(w));
     }
 
     return pool;
