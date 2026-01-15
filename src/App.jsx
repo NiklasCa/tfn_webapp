@@ -5,10 +5,17 @@ import { getWordPool } from './data/wordLists';
 import { GoogleSpeechHandler, normalizeResult, preProcessTranscript } from './utils/speechUtils';
 import { useWakeLock } from './hooks/useWakeLock';
 
-const APP_VERSION = '1.3.6';
+const APP_VERSION = '1.5.02';
+
+// ... (Lines in between unchanged, I will use multiple replace chunks or broad replacement if easier)
+
+// ...
 
 function App() {
   const [mode, setMode] = useState('swedish'); // 'swedish' | 'nato'
+
+
+
   // Removed engine state, defaulting to Google
   // Default categories: Swedish places and Names
   const [selectedCategories, setSelectedCategories] = useState(new Set(['places_se', 'cities_world', 'names', 'codes']));
@@ -508,7 +515,7 @@ function App() {
       setIsAutoMode(true);
       setIsAutoPaused(false);
       setAutoPhase('PREPARATION'); // Start with a prep phase
-      setTimer(autoSettings.prepTime);
+      setTimer(autoSettings.prepTime * 1000);
     }
   };
 
@@ -518,10 +525,10 @@ function App() {
 
     const interval = setInterval(() => {
       setTimer(t => {
-        if (t <= 1) return 0;
-        return t - 1;
+        if (t <= 100) return 0;
+        return t - 100;
       });
-    }, 1000);
+    }, 100);
 
     // Handle expiry when timer hits 0 (checked via effect below or implicit logic)
     // Actually, setting interval to check t <= 1 and returning 0 creates a rendering cycle where t maps to 0. 
@@ -537,7 +544,7 @@ function App() {
     if (autoPhase === 'EVALUATION') {
       pickNewWord();
       setAutoPhase('PREPARATION');
-      setTimer(autoSettings.prepTime);
+      setTimer(autoSettings.prepTime * 1000);
     } else if (autoPhase === 'PREPARATION') {
       setAutoPhase('ACTIVE');
       startListening();
@@ -561,7 +568,7 @@ function App() {
     } else {
       // Go to Evaluation
       setAutoPhase('EVALUATION');
-      setTimer(autoSettings.evalTime);
+      setTimer(autoSettings.evalTime * 1000);
     }
   }, [isAutoMode, autoPhase, isListening, results, currentWord, autoSettings]);
 
@@ -604,7 +611,7 @@ function App() {
           </div>
         </div>
 
-        <div className="current-word">
+        <div className="current-word" style={{ marginBottom: isAutoMode && (autoPhase === 'EVALUATION' || autoPhase === 'PREPARATION') ? '0.2rem' : '3rem' }}>
           <div className="word-display">
             {currentWord.split('').map((char, index) => {
               const res = results[index];
@@ -628,11 +635,37 @@ function App() {
           </div>
         </div>
 
+        {/* Status / Countdown Display */}
+        {/* Countdown Display (Only for Auto Mode Prep/Eval) */}
+        {isAutoMode && (autoPhase === 'EVALUATION' || autoPhase === 'PREPARATION') && (
+          <div className="status-text" style={{ marginTop: '0', marginBottom: '2rem', height: 'auto', minHeight: '1.5rem', textAlign: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+              {/* Visual Bar */}
+              <div style={{ width: '200px', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden' }}>
+                <div
+                  style={(() => {
+                    const totalTimeMs = (autoPhase === 'EVALUATION' ? autoSettings.evalTime : autoSettings.prepTime) * 1000;
+                    return {
+                      height: '100%',
+                      background: 'var(--accent)',
+                      width: `${(timer / totalTimeMs) * 100}%`,
+                      transition: timer === totalTimeMs ? 'none' : 'width 0.1s linear'
+                    };
+                  })()}
+                />
+              </div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--accent)', fontWeight: 'bold' }}>
+                {autoPhase === 'EVALUATION' ? `Nästa ord om: ${Math.ceil(timer / 1000)}s` : `Börjar om: ${Math.ceil(timer / 1000)}s`}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mic-container">
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
 
             {/* Auto Toggle Button */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', width: '110px' }}>
               <button
                 className={`next-word-button ${isAutoMode ? 'btn-active' : ''}`}
                 style={{ borderColor: isAutoMode ? 'var(--accent)' : 'rgba(255,255,255,0.2)', color: isAutoMode ? 'var(--accent)' : 'inherit' }}
@@ -657,7 +690,7 @@ function App() {
               <span className="desktop-hint">Space</span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', width: '110px' }}>
               {/* Hide Next button in Prep phase to avoid double-skip? Or just keep enabled? Keep enabled for manual override. */}
               <button className="next-word-button" onClick={pickNewWord} title="Nästa ord (Pil Höger)">
                 <ArrowRight size={32} />
@@ -666,31 +699,17 @@ function App() {
             </div>
           </div>
 
-          {/* Status / Countdown Display */}
-          <div className="status-text" style={{ marginTop: '0.5rem', height: 'auto', minHeight: '1.5rem' }}>
-            {isAutoMode && isAutoPaused ? (
-              <div style={{ color: 'var(--warning)', fontWeight: 'bold' }}>AUTO PAUSAD (Tryck Space)</div>
-            ) : (isAutoMode && (autoPhase === 'EVALUATION' || autoPhase === 'PREPARATION')) ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem' }}>
-                <div style={{ fontSize: '0.9rem', color: 'var(--accent)', fontWeight: 'bold' }}>
-                  {autoPhase === 'EVALUATION' ? `Nästa ord om: ${timer}s` : `Börjar om: ${timer}s`}
-                </div>
-                {/* Visual Bar */}
-                <div style={{ width: '100px', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden' }}>
-                  <div
-                    style={{
-                      height: '100%',
-                      background: 'var(--accent)',
-                      width: `${(timer / (autoPhase === 'EVALUATION' ? autoSettings.evalTime : autoSettings.prepTime)) * 100}%`,
-                      transition: 'width 1s linear'
-                    }}
-                  />
-                </div>
-              </div>
-            ) : (
-              status
-            )}
-          </div>
+          {/* Status Text (Manual / Auto Paused / Auto Active) */}
+          {(!isAutoMode || isAutoPaused || (autoPhase !== 'EVALUATION' && autoPhase !== 'PREPARATION')) && (
+            <div className="status-text" style={{ marginTop: '-1rem', height: 'auto', minHeight: '1.5rem', textAlign: 'center' }}>
+              {isAutoMode && isAutoPaused ? (
+                <div style={{ color: 'var(--warning)', fontWeight: 'bold' }}>AUTO PAUSAD (Tryck Space)</div>
+              ) : (
+                status
+              )}
+            </div>
+          )}
+
         </div>
 
         {lastTranscript && (
