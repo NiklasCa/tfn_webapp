@@ -5,7 +5,7 @@ import { getWordPool } from './data/wordLists';
 import { GoogleSpeechHandler, normalizeResult, preProcessTranscript } from './utils/speechUtils';
 import { useWakeLock } from './hooks/useWakeLock';
 
-const APP_VERSION = '1.3.2';
+const APP_VERSION = '1.3.3';
 
 function App() {
   const [mode, setMode] = useState('swedish'); // 'swedish' | 'nato'
@@ -739,16 +739,7 @@ function App() {
                   </ul>
                 </div>
 
-                <div>
-                  <strong>Interim Hints (Rådata):</strong>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginTop: '0.2rem' }}>
-                    {lastDebugInfo.hints && lastDebugInfo.hints.map((h, i) => (
-                      <span key={i} style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px' }}>
-                        {h}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+
               </div>
             )}
           </div>
