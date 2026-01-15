@@ -89,7 +89,9 @@ export const normalizeResult = (transcript, alternatives = [], alphabetMode, tar
     // 2. Handle common phonetic mis-transcriptions and aliases
     const aliases = {
         'gustaf': 'gustav',
-        'qvintus': 'quintus',
+        'qvintus': 'qvintus', // Self-map or just remove if identity
+        'quintus': 'qvintus', // Alias for Qvintus
+        'kvintus': 'qvintus', // Alias for Qvintus
         'zeta': 'zäta',     // Zeta -> Zäta
         'z': 'zäta',        // Z -> Zäta
         'q': 'qvintus',     // Q -> Qvintus
