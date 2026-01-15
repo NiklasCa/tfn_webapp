@@ -5,7 +5,7 @@ import { getWordPool } from './data/wordLists';
 import { GoogleSpeechHandler, normalizeResult, preProcessTranscript } from './utils/speechUtils';
 import { useWakeLock } from './hooks/useWakeLock';
 
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.3.0';
 
 function App() {
   const [mode, setMode] = useState('swedish'); // 'swedish' | 'nato'
@@ -34,6 +34,7 @@ function App() {
 
   // Auto Mode State
   const [isAutoMode, setIsAutoMode] = useState(false);
+  const [isAutoPaused, setIsAutoPaused] = useState(false); // New state
   const [autoPhase, setAutoPhase] = useState('IDLE'); // IDLE, ACTIVE, EVALUATION, PREPARATION
   const [timer, setTimer] = useState(0);
   const [autoSettings, setAutoSettings] = useState({
@@ -41,6 +42,9 @@ function App() {
     prepTime: 5,
     require100: false
   });
+
+  const [debugMode, setDebugMode] = useState(false);
+  const [lastDebugInfo, setLastDebugInfo] = useState(null);
 
   // Keep screen awake in Auto Mode
   useWakeLock(isAutoMode);
@@ -67,28 +71,61 @@ function App() {
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
       if (e.code === 'Space') {
-        e.preventDefault();
-        toggleListening();
+        if (e.ctrlKey) {
+          e.preventDefault();
+          toggleAutoMode();
+        } else {
+          e.preventDefault();
+          if (isAutoMode) {
+            setIsAutoPaused(prev => {
+              const next = !prev;
+              // If we are pausing, force stop listening to be safe
+              if (next && isListening) {
+                if (speechRef.current) speechRef.current.stop();
+                setIsListening(false);
+              }
+              // If we are resuming, we don't automatically start listening unless we were in ACTIVE phase?
+              // Actually, simply resuming the state allows the effects (preparation timer etc) to continue.
+              // If we were in ACTIVE phase and paused, isListening became false.
+              // The transition effect is blocked by isAutoPaused.
+              // When we unpause, checks run.
+              // If autoPhase is ACTIVE and we are not listening, we should probably start listening again?
+              // But 'toggleListening' handles manual toggle.
+              // Let's keep it simple: simpler handling for now. If active and paused, resuming might need a kick.
+              if (!next && autoPhase === 'ACTIVE' && !isListening) {
+                startListening();
+              }
+              return next;
+            });
+          } else {
+            toggleListening();
+          }
+        }
       } else if (e.code === 'ArrowRight') {
         pickNewWord();
+      } else if (e.key.toLowerCase() === 'd') {
+        setDebugMode(prev => !prev);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-    // Explicitly disabling exhaustive-deps for pickNewWord/toggleListening loop if needed, 
-    // but including them should be fine as long as they don't trigger frequent re-renders in a loop.
   }, [
-    isListening,
+    isListening, // Used in toggleListening
+    isAutoMode,  // Used in toggleAutoMode and Space check
+    isAutoPaused, // Used in Space check update
+    autoPhase,   // Used in logic
     selectedCategories,
     codeMin,
     codeMax,
     codeUseLetters,
     codeUseNumbers,
     codeUseHyphen,
-    results, // Fix: Add results to update closure
-    currentWord, // Fix: Add currentWord
-    mode // Fix: Add mode to dependency
+    results,
+    currentWord,
+    mode,
+    debugMode
   ]);
+
 
   const pickNewWord = () => {
     if (currentWord) {
@@ -163,9 +200,16 @@ function App() {
     }
   };
 
-  const handleSpeechResult = (transcript, alternatives) => {
+  const handleSpeechResult = (transcript, alternatives, hints = []) => {
     console.log('--- Speech Debug ---');
     console.log('Raw Transcript:', transcript);
+    console.log('Hints (Interim):', hints);
+
+    setLastDebugInfo({
+      transcript,
+      alternatives,
+      hints
+    });
 
     const alphabet = ALPHABETS[mode];
     const alphabetWords = new Set([
@@ -267,10 +311,14 @@ function App() {
 
           if (tChar !== ' ') {
             const expected = alphabet.letters[tChar] || alphabet.numbers[tChar] || alphabet.symbols[tChar];
-            const norm = normalizeResult(sWord, alternatives, mode, tChar);
+            // Pass HINTS to normalizeResult
+            const norm = normalizeResult(sWord, alternatives, mode, tChar, hints);
 
             const isMatch = norm && expected && norm.toLowerCase() === expected.toLowerCase();
-            const matchScore = isMatch ? 10 : -2;
+            // Give a small bonus for longer spoken words to prioritize "trea" over "3" if both match
+            // This ensures that actual words are marked correct while ghost digits are marked as noise.
+            const lengthBonus = isMatch ? Math.min(sWord.length, 3) : 0;
+            const matchScore = isMatch ? (10 + lengthBonus) : -2;
 
             const score = dp[i][j] + matchScore;
             if (score > dp[i + 1][j + 1]) {
@@ -314,7 +362,8 @@ function App() {
           const tChar = endpoints[i - 1];
           const sWord = words[j - 1];
           const expected = alphabet.letters[tChar] || alphabet.numbers[tChar] || alphabet.symbols[tChar];
-          const norm = normalizeResult(sWord, alternatives, mode, tChar);
+          // Pass HINTS here too
+          const norm = normalizeResult(sWord, alternatives, mode, tChar, hints);
 
           const res = {
             char: tChar,
@@ -324,7 +373,7 @@ function App() {
           };
 
           spokenResults.unshift({
-            transcript: sWord,
+            transcript: norm, // Use normalized (spelled out) form for display
             correct: false,
             expected: expected
           });
@@ -346,7 +395,8 @@ function App() {
         const tChar = endpoints[i - 1];
         const sWord = words[j - 1];
         const expected = alphabet.letters[tChar] || alphabet.numbers[tChar] || alphabet.symbols[tChar];
-        const norm = normalizeResult(sWord, alternatives, mode, tChar);
+        // Pass HINTS here too
+        const norm = normalizeResult(sWord, alternatives, mode, tChar, hints);
 
         const res = {
           char: tChar,
@@ -356,7 +406,7 @@ function App() {
         };
 
         spokenResults.unshift({
-          transcript: sWord,
+          transcript: norm, // Use normalized (spelled out) form for display
           correct: move === 'Match',
           expected: expected
         });
@@ -450,10 +500,13 @@ function App() {
   const toggleAutoMode = () => {
     if (isAutoMode) {
       setIsAutoMode(false);
+      setIsAutoPaused(false);
       setAutoPhase('IDLE');
-      stopListening();
+      if (speechRef.current) speechRef.current.stop();
+      setIsListening(false);
     } else {
       setIsAutoMode(true);
+      setIsAutoPaused(false);
       setAutoPhase('PREPARATION'); // Start with a prep phase
       setTimer(autoSettings.prepTime);
     }
@@ -461,6 +514,7 @@ function App() {
 
   useEffect(() => {
     if (!isAutoMode || autoPhase === 'IDLE' || autoPhase === 'ACTIVE') return;
+    if (isAutoPaused) return; // Pause timer
 
     const interval = setInterval(() => {
       setTimer(t => {
@@ -493,6 +547,7 @@ function App() {
   // Monitor Listening State for Auto Transitions
   useEffect(() => {
     if (!isAutoMode || autoPhase !== 'ACTIVE' || isListening) return;
+    if (isAutoPaused) return; // Do not advance if paused
 
     // Mic stopped. Check if we should proceed or retry.
     const currentWordLen = currentWord.replace(/ /g, '').length;
@@ -586,7 +641,7 @@ function App() {
               >
                 <Repeat size={24} />
               </button>
-              <span className="desktop-hint">Auto</span>
+              <span className="desktop-hint">Auto (Ctrl+Space)</span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
@@ -613,7 +668,9 @@ function App() {
 
           {/* Status / Countdown Display */}
           <div className="status-text" style={{ marginTop: '0.5rem', height: 'auto', minHeight: '1.5rem' }}>
-            {(isAutoMode && (autoPhase === 'EVALUATION' || autoPhase === 'PREPARATION')) ? (
+            {isAutoMode && isAutoPaused ? (
+              <div style={{ color: 'var(--warning)', fontWeight: 'bold' }}>AUTO PAUSAD (Tryck Space)</div>
+            ) : (isAutoMode && (autoPhase === 'EVALUATION' || autoPhase === 'PREPARATION')) ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem' }}>
                 <div style={{ fontSize: '0.9rem', color: 'var(--accent)', fontWeight: 'bold' }}>
                   {autoPhase === 'EVALUATION' ? `Nästa ord om: ${timer}s` : `Börjar om: ${timer}s`}
@@ -658,6 +715,42 @@ function App() {
                 </div>
               )}
             </div>
+
+            {/* DEBUG VIEW */}
+            {debugMode && lastDebugInfo && (
+              <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)', width: '100%', fontSize: '0.8rem', textAlign: 'left', backgroundColor: 'rgba(0,0,0,0.2)', padding: '0.5rem', borderRadius: '4px' }}>
+                <div style={{ fontWeight: 'bold', color: 'var(--accent)', marginBottom: '0.5rem' }}>Debug Mode:</div>
+
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <strong>Huvudresultat:</strong> {lastDebugInfo.transcript}
+                </div>
+
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <strong>Alternativ (API):</strong>
+                  <ul style={{ margin: 0, paddingLeft: '1.2rem', color: '#ccc' }}>
+                    {lastDebugInfo.alternatives.map((alt, i) => (
+                      <li key={i}>
+                        "{alt.transcript}"
+                        {alt.confidence !== undefined && <span style={{ opacity: 0.6, fontSize: '0.75rem', marginLeft: '0.5rem' }}>
+                          (Konfidens: {(alt.confidence * 100).toFixed(1)}%)
+                        </span>}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <strong>Interim Hints (Rådata):</strong>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginTop: '0.2rem' }}>
+                    {lastDebugInfo.hints && lastDebugInfo.hints.map((h, i) => (
+                      <span key={i} style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px' }}>
+                        {h}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -746,6 +839,18 @@ function App() {
                   </div>
 
                 </div>
+              </div>
+
+              {/* Debug Mode Settings */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', border: '1px solid var(--border-color)', padding: '0.75rem', borderRadius: '4px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={debugMode}
+                    onChange={(e) => setDebugMode(e.target.checked)}
+                  />
+                  <span>Debug Mode (Visa API-alternativ)</span>
+                </label>
               </div>
 
               {/* Code Length Settings (Conditional) */}

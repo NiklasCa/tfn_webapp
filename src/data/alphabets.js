@@ -37,9 +37,4 @@ export const ALPHABETS = {
   }
 };
 
-export const COMMON_WORDS = [
-  "Stockholm", "Göteborg", "Malmö", "Uppsala", "Västerås", "Örebro", "Linköping", "Helsingborg", "Jönköping", "Norrköping",
-  "Katterat", "Abisko", "Kiruna", "Gällivare", "Haparanda", "Skellefteå", "Örnsköldsvik", "Härnösand", "Sundsvall", "Östersund",
-  "Luleå", "Umeå", "Kristianstad", "Karlskrona", "Halmstad", "Växjö", "Kalmar", "Falkenberg", "Varberg", "Kungsbacka",
-  "123-ABC", "XYZ-789", "B737-MAX", "SE-XYZ", "A320-X", "NATO-2026", "TFN-21"
-];
+

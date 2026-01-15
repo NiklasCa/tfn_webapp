@@ -2,7 +2,7 @@
  * Normalizes speech input based on the active alphabet mode.
  * Handles the digit conversion problem (e.g., "1" -> "ett" in Swedish).
  */
-export const normalizeResult = (transcript, alternatives = [], alphabetMode, targetChar) => {
+export const normalizeResult = (transcript, alternatives = [], alphabetMode, targetChar, hints = []) => {
     const mode = alphabetMode.toLowerCase();
     let normalized = transcript.toLowerCase().trim();
     // Remove punctuation immediately so "1." becomes "1" before number mapping
@@ -26,49 +26,58 @@ export const normalizeResult = (transcript, alternatives = [], alphabetMode, tar
 
     const numberMap = mode === 'swedish' ? swedishNumbers : natoNumbers;
 
-    // Strict check for Swedish numbers where 'bare' forms (tre) are wrong
-    // We assume the digit (e.g. "3") means the correct form ("trea") unless we see evidence otherwise.
-    if (mode === 'swedish' && ['0', '2', '3', '5', '6', '9'].includes(normalized)) {
-        const digitForms = {
-            '0': { correct: 'nolla', bare: 'noll' },
-            '2': { correct: 'tvåa', bare: 'två' },
-            '3': { correct: 'trea', bare: 'tre' },
-            '5': { correct: 'femma', bare: 'fem' },
-            '6': { correct: 'sexa', bare: 'sex' },
-            '9': { correct: 'nia', bare: 'nio' }
+    // Detailed handling for Swedish number forms (0-9)
+    if (mode === 'swedish') {
+        const digitVariants = {
+            '0': { correct: 'nolla', incorrect: [] },
+            '1': { correct: 'ett', incorrect: ['etta', 'en'] },
+            '2': { correct: 'tvåa', incorrect: ['två'] },
+            '3': { correct: 'trea', incorrect: ['tre'] },
+            '4': { correct: 'fyra', incorrect: ['fyr'] }, // "Fyra" is usually correct. "Fyr" is incorrect/slang.
+            '5': { correct: 'femma', incorrect: ['fem'] },
+            '6': { correct: 'sexa', incorrect: ['sex'] },
+            '7': { correct: 'sju', incorrect: ['sjua'] }, // "Sju" is generally standard in radio, "sjua" is the noun.
+            '8': { correct: 'åtta', incorrect: ['ått'] }, // Uncommon but consistent pattern
+            '9': { correct: 'nia', incorrect: ['nio'] }
         };
 
-        const form = digitForms[normalized];
-        const allTranscripts = [transcript, ...alternatives.map(a => a.transcript)].join(' ').toLowerCase();
+        const variant = digitVariants[normalized];
+        if (variant) {
+            // Check alternatives for incorrect forms
+            // standard \b in JS doesn't treat åäö as word characters, so we tokenize manually
+            // We now include HINTS (interim words) in the search space!
+            const allTranscripts = [
+                transcript,
+                ...alternatives.map(a => a.transcript),
+                ...hints
+            ].join(' ').toLowerCase();
 
-        // If we explicitly find the WRONG bare form ("tre"), we use it to mark the user wrong.
-        // But we must be careful: "trea" contains "tre". So we check for word boundaries or exact match?
-        // Actually, let's keep it simple: If we see the digit '3', we accept it as 'trea' (correct).
-        // If we really want to punish 'tre', we'd need better data. 
-        // For now, let's just Fix the bug where '3' was failing.
-        // So we default to returning the value from numberMap, which is now the CORRECT form.
+            const words = allTranscripts.split(/[^a-zåäö0-9]+/);
+            // Unique words to avoid redundant checks
+            const uniqueWords = new Set(words);
 
-        // Detailed check (optional): If we find "tre" but NOT "trea"? 
-        // RegExp to find 'tre' as a whole word, not part of 'trea'
-        const bareRegex = new RegExp(`\\b${form.bare}\\b`, 'i');
-        const correctRegex = new RegExp(`\\b${form.correct}\\b`, 'i');
+            // Gathers all candidates: correct form + all incorrect forms
+            const candidates = [variant.correct, ...variant.incorrect];
 
-        if (bareRegex.test(allTranscripts) && !correctRegex.test(allTranscripts)) {
-            return form.bare;
+            // Find which candidates appear in the words
+            const matches = candidates.filter(c => uniqueWords.has(c));
+
+            if (matches.length > 0) {
+                // Sort by length OBS: Prioritize LONGER matches
+                // e.g. "trea" (4) > "tre" (3). If both appear, user likely said "trea".
+                // e.g. "etta" (4) > "ett" (3). If both appear, user likely said "etta".
+                matches.sort((a, b) => b.length - a.length);
+                return matches[0];
+            }
+
+            // If no forms are explicitly found (unlikely if digit was recognized, but possible if digit came from "753" block)
+            // we default to the correct form.
+            return variant.correct;
         }
-
-        return numberMap[normalized];
     }
 
-    // 1. If it's a digit, map it directly
+    // 1. If it's a digit (and not handled above or not swedish), map it directly
     if (numberMap[normalized]) {
-        // SPECIAL CASE for Swedish "ett" vs "etta"
-        // Target is "ett". If user says "etta", it's wrong.
-        if (mode === 'swedish' && normalized === '1') {
-            const hasEtta = alternatives.some(alt => alt.transcript.toLowerCase().includes('etta'));
-            if (hasEtta) return 'etta';
-            return 'ett';
-        }
         return numberMap[normalized];
     }
 
@@ -91,6 +100,12 @@ export const normalizeResult = (transcript, alternatives = [], alphabetMode, tar
         'zaxes': 'xerxes',   // Alias for Xerxes
         'x': 'xerxes',   // Alias for Xerxes
         'sigrid': 'sigurd',   // Alias for Sigurd
+        'nya': 'nia',         // Alias for Nia
+        'mia': 'nia',         // Alias for Nia
+        'femman': 'femma',    // Alias for Femma
+        'noll': 'nolla',      // Alias for Nolla
+        'sigud': 'sigurd',    // Alias for Sigurd
+        'sigood': 'sigurd',   // Alias for Sigurd
     };
 
     if (aliases[normalized]) {
@@ -124,18 +139,33 @@ export class GoogleSpeechHandler {
 
         this.recognition = new SpeechRecognition();
         this.recognition.continuous = true;
-        this.recognition.interimResults = false;
+        this.recognition.interimResults = true; // Use interim results to catch raw words
         this.recognition.lang = lang;
         this.recognition.maxAlternatives = 5;
 
+        // Store words seen during interim phases for the current segment
+        this.interimWords = new Set();
+
         this.recognition.onresult = (event) => {
-            // Only process final results to avoid double-counting interim words
             for (let i = event.resultIndex; i < event.results.length; i++) {
-                if (event.results[i].isFinal) {
-                    const result = event.results[i];
+                const result = event.results[i];
+                const transcript = result[0].transcript;
+
+                if (result.isFinal) {
                     const alternatives = Array.from(result);
-                    const transcript = result[0].transcript;
-                    onResult(transcript, alternatives);
+                    // Pass the accumulated interim hints
+                    onResult(transcript, alternatives, Array.from(this.interimWords));
+
+                    // Reset for next segment
+                    this.interimWords.clear();
+                } else {
+                    // Collect words from interim results
+                    // We split by space to get individual words (e.g., "en", "etta", "två")
+                    // even if they later get merged into "12".
+                    const words = transcript.toLowerCase().split(/[\s.,!?]+/);
+                    words.forEach(w => {
+                        if (w && w.length > 0) this.interimWords.add(w);
+                    });
                 }
             }
         };
@@ -156,3 +186,4 @@ export class GoogleSpeechHandler {
         this.recognition.stop();
     }
 }
+
