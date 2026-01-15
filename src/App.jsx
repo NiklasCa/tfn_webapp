@@ -5,7 +5,7 @@ import { getWordPool } from './data/wordLists';
 import { GoogleSpeechHandler, normalizeResult, preProcessTranscript } from './utils/speechUtils';
 import { useWakeLock } from './hooks/useWakeLock';
 
-const APP_VERSION = '1.3.4';
+const APP_VERSION = '1.3.6';
 
 function App() {
   const [mode, setMode] = useState('swedish'); // 'swedish' | 'nato'
@@ -38,8 +38,8 @@ function App() {
   const [autoPhase, setAutoPhase] = useState('IDLE'); // IDLE, ACTIVE, EVALUATION, PREPARATION
   const [timer, setTimer] = useState(0);
   const [autoSettings, setAutoSettings] = useState({
-    evalTime: 10,
-    prepTime: 5,
+    evalTime: 5,
+    prepTime: 2,
     require100: false
   });
 
@@ -810,7 +810,7 @@ function App() {
                       <span>{autoSettings.evalTime}s</span>
                     </div>
                     <input
-                      type="range" min="5" max="60" step="1"
+                      type="range" min="3" max="60" step="1"
                       value={autoSettings.evalTime}
                       onChange={(e) => setAutoSettings(prev => ({ ...prev, evalTime: parseInt(e.target.value) }))}
                     />
@@ -823,7 +823,7 @@ function App() {
                       <span>{autoSettings.prepTime}s</span>
                     </div>
                     <input
-                      type="range" min="3" max="15" step="1"
+                      type="range" min="1" max="15" step="1"
                       value={autoSettings.prepTime}
                       onChange={(e) => setAutoSettings(prev => ({ ...prev, prepTime: parseInt(e.target.value) }))}
                     />

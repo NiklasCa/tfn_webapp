@@ -92,6 +92,7 @@ export const normalizeResult = (transcript, alternatives = [], alphabetMode, tar
         'qvintus': 'qvintus', // Self-map or just remove if identity
         'quintus': 'qvintus', // Alias for Qvintus
         'kvintus': 'qvintus', // Alias for Qvintus
+        'kvinters': 'qvintus', // Alias for Qvintus
         'zeta': 'zäta',     // Zeta -> Zäta
         'z': 'zäta',        // Z -> Zäta
         'q': 'qvintus',     // Q -> Qvintus
@@ -108,6 +109,7 @@ export const normalizeResult = (transcript, alternatives = [], alphabetMode, tar
         'noll': 'nolla',      // Alias for Nolla
         'sigud': 'sigurd',    // Alias for Sigurd
         'sigood': 'sigurd',   // Alias for Sigurd
+        'urva': 'urban',      // Alias for Urban
     };
 
     if (aliases[normalized]) {
