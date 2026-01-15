@@ -146,6 +146,8 @@ export class GoogleSpeechHandler {
         // Store words seen during interim phases for the current segment
         this.interimWords = new Set();
 
+        this.isExpectedToListen = false; // Track if we WANT to be listening
+
         this.recognition.onresult = (event) => {
             for (let i = event.resultIndex; i < event.results.length; i++) {
                 const result = event.results[i];
@@ -170,11 +172,32 @@ export class GoogleSpeechHandler {
             }
         };
 
-        this.recognition.onerror = onError;
-        this.recognition.onend = onEnd;
+        this.recognition.onerror = (event) => {
+            // If not-allowed or duplicate start, we shouldn't force restart
+            if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                this.isExpectedToListen = false;
+            }
+            onError(event);
+        };
+
+        this.recognition.onend = () => {
+            // Auto-restart if we expected to be listening (Mobile Chrome fix)
+            if (this.isExpectedToListen) {
+                console.log('Speech ended but expected to listen. Restarting...');
+                try {
+                    this.recognition.start();
+                } catch (e) {
+                    console.error('Restart failed:', e);
+                    onEnd(); // Give up if restart fails
+                }
+            } else {
+                onEnd();
+            }
+        };
     }
 
     start() {
+        this.isExpectedToListen = true;
         try {
             this.recognition.start();
         } catch (e) {
@@ -183,6 +206,7 @@ export class GoogleSpeechHandler {
     }
 
     stop() {
+        this.isExpectedToListen = false;
         this.recognition.stop();
     }
 }
