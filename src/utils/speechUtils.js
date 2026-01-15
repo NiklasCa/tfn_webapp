@@ -139,7 +139,7 @@ export class GoogleSpeechHandler {
 
         this.recognition = new SpeechRecognition();
         this.recognition.continuous = true;
-        this.recognition.interimResults = true; // Use interim results to catch raw words
+        this.recognition.interimResults = false; // Disable interim results to fix Mobile Chrome instability
         this.recognition.lang = lang;
         this.recognition.maxAlternatives = 5;
 

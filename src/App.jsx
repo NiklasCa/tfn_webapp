@@ -5,7 +5,7 @@ import { getWordPool } from './data/wordLists';
 import { GoogleSpeechHandler, normalizeResult, preProcessTranscript } from './utils/speechUtils';
 import { useWakeLock } from './hooks/useWakeLock';
 
-const APP_VERSION = '1.3.1';
+const APP_VERSION = '1.3.2';
 
 function App() {
   const [mode, setMode] = useState('swedish'); // 'swedish' | 'nato'
